@@ -86,157 +86,11 @@ from tensorflow.keras import layers
 from official.nlp import optimization
 import matplotlib.pyplot as plt
 
-import tensorflow as tf
-import tensorflow_hub as hub
-import tensorflow_text as text
-from official.nlp import optimization
-
-# Dictionary from Text transformer Classifier BERT.
-tf.get_logger().setLevel('ERROR')
-
-map_name_to_handle = {
-    'bert_en_uncased_L-12_H-768_A-12':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_L-12_H-768_A-12/3',
-    'bert_en_cased_L-12_H-768_A-12':
-        'https://tfhub.dev/tensorflow/bert_en_cased_L-12_H-768_A-12/3',
-    'bert_multi_cased_L-12_H-768_A-12':
-        'https://tfhub.dev/tensorflow/bert_multi_cased_L-12_H-768_A-12/3',
-    'small_bert/bert_en_uncased_L-2_H-128_A-2':
-        'https://tfhub.dev/tensorflow/small_bert/bert_en_uncased_L-2_H-128_A-2/1',
-    'small_bert/bert_en_uncased_L-2_H-256_A-4':
-        'https://tfhub.dev/tensorflow/small_bert/bert_en_uncased_L-2_H-256_A-4/1',
-    'small_bert/bert_en_uncased_L-2_H-512_A-8':
-        'https://tfhub.dev/tensorflow/small_bert/bert_en_uncased_L-2_H-512_A-8/1',
-    'small_bert/bert_en_uncased_L-2_H-768_A-12':
-        'https://tfhub.dev/tensorflow/small_bert/bert_en_uncased_L-2_H-768_A-12/1',
-    'small_bert/bert_en_uncased_L-4_H-128_A-2':
-        'https://tfhub.dev/tensorflow/small_bert/bert_en_uncased_L-4_H-128_A-2/1',
-    'small_bert/bert_en_uncased_L-4_H-256_A-4':
-        'https://tfhub.dev/tensorflow/small_bert/bert_en_uncased_L-4_H-256_A-4/1',
-    'small_bert/bert_en_uncased_L-4_H-512_A-8':
-        'https://tfhub.dev/tensorflow/small_bert/bert_en_uncased_L-4_H-512_A-8/1',
-    'small_bert/bert_en_uncased_L-4_H-768_A-12':
-        'https://tfhub.dev/tensorflow/small_bert/bert_en_uncased_L-4_H-768_A-12/1',
-    'small_bert/bert_en_uncased_L-6_H-128_A-2':
-        'https://tfhub.dev/tensorflow/small_bert/bert_en_uncased_L-6_H-128_A-2/1',
-    'small_bert/bert_en_uncased_L-6_H-256_A-4':
-        'https://tfhub.dev/tensorflow/small_bert/bert_en_uncased_L-6_H-256_A-4/1',
-    'small_bert/bert_en_uncased_L-6_H-512_A-8':
-        'https://tfhub.dev/tensorflow/small_bert/bert_en_uncased_L-6_H-512_A-8/1',
-    'small_bert/bert_en_uncased_L-6_H-768_A-12':
-        'https://tfhub.dev/tensorflow/small_bert/bert_en_uncased_L-6_H-768_A-12/1',
-    'small_bert/bert_en_uncased_L-8_H-128_A-2':
-        'https://tfhub.dev/tensorflow/small_bert/bert_en_uncased_L-8_H-128_A-2/1',
-    'small_bert/bert_en_uncased_L-8_H-256_A-4':
-        'https://tfhub.dev/tensorflow/small_bert/bert_en_uncased_L-8_H-256_A-4/1',
-    'small_bert/bert_en_uncased_L-8_H-512_A-8':
-        'https://tfhub.dev/tensorflow/small_bert/bert_en_uncased_L-8_H-512_A-8/1',
-    'small_bert/bert_en_uncased_L-8_H-768_A-12':
-        'https://tfhub.dev/tensorflow/small_bert/bert_en_uncased_L-8_H-768_A-12/1',
-    'small_bert/bert_en_uncased_L-10_H-128_A-2':
-        'https://tfhub.dev/tensorflow/small_bert/bert_en_uncased_L-10_H-128_A-2/1',
-    'small_bert/bert_en_uncased_L-10_H-256_A-4':
-        'https://tfhub.dev/tensorflow/small_bert/bert_en_uncased_L-10_H-256_A-4/1',
-    'small_bert/bert_en_uncased_L-10_H-512_A-8':
-        'https://tfhub.dev/tensorflow/small_bert/bert_en_uncased_L-10_H-512_A-8/1',
-    'small_bert/bert_en_uncased_L-10_H-768_A-12':
-        'https://tfhub.dev/tensorflow/small_bert/bert_en_uncased_L-10_H-768_A-12/1',
-    'small_bert/bert_en_uncased_L-12_H-128_A-2':
-        'https://tfhub.dev/tensorflow/small_bert/bert_en_uncased_L-12_H-128_A-2/1',
-    'small_bert/bert_en_uncased_L-12_H-256_A-4':
-        'https://tfhub.dev/tensorflow/small_bert/bert_en_uncased_L-12_H-256_A-4/1',
-    'small_bert/bert_en_uncased_L-12_H-512_A-8':
-        'https://tfhub.dev/tensorflow/small_bert/bert_en_uncased_L-12_H-512_A-8/1',
-    'small_bert/bert_en_uncased_L-12_H-768_A-12':
-        'https://tfhub.dev/tensorflow/small_bert/bert_en_uncased_L-12_H-768_A-12/1',
-    'albert_en_base':
-        'https://tfhub.dev/tensorflow/albert_en_base/2',
-    'electra_small':
-        'https://tfhub.dev/google/electra_small/2',
-    'electra_base':
-        'https://tfhub.dev/google/electra_base/2',
-    'experts_pubmed':
-        'https://tfhub.dev/google/experts/bert/pubmed/2',
-    'experts_wiki_books':
-        'https://tfhub.dev/google/experts/bert/wiki_books/2',
-    'talking-heads_base':
-        'https://tfhub.dev/tensorflow/talkheads_ggelu_bert_en_base/1',
-}
-
-map_model_to_preprocess = {
-    'bert_en_uncased_L-12_H-768_A-12':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3',
-    'bert_en_cased_L-12_H-768_A-12':
-        'https://tfhub.dev/tensorflow/bert_en_cased_preprocess/3',
-    'small_bert/bert_en_uncased_L-2_H-128_A-2':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3',
-    'small_bert/bert_en_uncased_L-2_H-256_A-4':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3',
-    'small_bert/bert_en_uncased_L-2_H-512_A-8':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3',
-    'small_bert/bert_en_uncased_L-2_H-768_A-12':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3',
-    'small_bert/bert_en_uncased_L-4_H-128_A-2':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3',
-    'small_bert/bert_en_uncased_L-4_H-256_A-4':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3',
-    'small_bert/bert_en_uncased_L-4_H-512_A-8':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3',
-    'small_bert/bert_en_uncased_L-4_H-768_A-12':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3',
-    'small_bert/bert_en_uncased_L-6_H-128_A-2':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3',
-    'small_bert/bert_en_uncased_L-6_H-256_A-4':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3',
-    'small_bert/bert_en_uncased_L-6_H-512_A-8':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3',
-    'small_bert/bert_en_uncased_L-6_H-768_A-12':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3',
-    'small_bert/bert_en_uncased_L-8_H-128_A-2':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3',
-    'small_bert/bert_en_uncased_L-8_H-256_A-4':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3',
-    'small_bert/bert_en_uncased_L-8_H-512_A-8':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3',
-    'small_bert/bert_en_uncased_L-8_H-768_A-12':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3',
-    'small_bert/bert_en_uncased_L-10_H-128_A-2':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3',
-    'small_bert/bert_en_uncased_L-10_H-256_A-4':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3',
-    'small_bert/bert_en_uncased_L-10_H-512_A-8':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3',
-    'small_bert/bert_en_uncased_L-10_H-768_A-12':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3',
-    'small_bert/bert_en_uncased_L-12_H-128_A-2':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3',
-    'small_bert/bert_en_uncased_L-12_H-256_A-4':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3',
-    'small_bert/bert_en_uncased_L-12_H-512_A-8':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3',
-    'small_bert/bert_en_uncased_L-12_H-768_A-12':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3',
-    'bert_multi_cased_L-12_H-768_A-12':
-        'https://tfhub.dev/tensorflow/bert_multi_cased_preprocess/3',
-    'albert_en_base':
-        'https://tfhub.dev/tensorflow/albert_en_preprocess/3',
-    'electra_small':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3',
-    'electra_base':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3',
-    'experts_pubmed':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3',
-    'experts_wiki_books':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3',
-    'talking-heads_base':
-        'https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3',
-}
 
 # Class for loading image and text data
 
 class ITM_DataLoader():
-    
-    BATCH_SIZE = 16 # change
+    BATCH_SIZE = 16
     IMAGE_SIZE = (224, 224)
     IMAGE_SHAPE = (224, 224, 3)
     SENTENCE_EMBEDDING_SHAPE = (384)
@@ -348,12 +202,13 @@ class ITM_DataLoader():
                 print(f'Label : {label}')
         print("-----------------------------------------")
 
+
+
 # Main class for the Image-Text Matching (ITM) task
 
 class ITM_Classifier(ITM_DataLoader):
-    bert_model_name = "small_bert/bert_en_uncased_L-4_H-512_A-8"
-    epochs = 10 # change
-    learning_rate = 3e-5 # chnange
+    epochs = 10
+    learning_rate = 3e-5
     class_names = {'match', 'no-match'}
     num_classes = len(class_names)
     classifier_model = None
@@ -366,7 +221,6 @@ class ITM_Classifier(ITM_DataLoader):
         self.train_classifier_model()
         self.test_classifier_model()
 
-    # Trail 1 = adding layers 128 and 256 to the base line
     # return learnt feature representations of input data (images)
     def create_vision_encoder(self, num_projection_layers, projection_dims, dropout_rate):
         img_input = layers.Input(shape=self.IMAGE_SHAPE, name="image_input")
@@ -379,8 +233,6 @@ class ITM_Classifier(ITM_DataLoader):
         cnn_layer = layers.Conv2D(128, 3, padding='same', activation='relu')(cnn_layer)
         cnn_layer = layers.MaxPooling2D()(cnn_layer)
         cnn_layer = layers.Conv2D(256, 3, padding='same', activation='relu')(cnn_layer)
-        cnn_layer = layers.MaxPooling2D()(cnn_layer)
-        cnn_layer = layers.Conv2D(512, 3, padding='same', activation='relu')(cnn_layer)
         cnn_layer = layers.MaxPooling2D()(cnn_layer)
         cnn_layer = layers.Dropout(dropout_rate)(cnn_layer)
         cnn_layer = layers.Flatten()(cnn_layer)
@@ -399,35 +251,16 @@ class ITM_Classifier(ITM_DataLoader):
         return projected_embeddings
 
     # return learnt feature representations of input data (text embeddings in the form of dense vectors)
-    # def create_text_encoder(self, num_projection_layers, projection_dims, dropout_rate):
-    #     text_input = keras.Input(shape=self.SENTENCE_EMBEDDING_SHAPE, name='text_embedding')
-    #     outputs = self.project_embeddings(text_input, num_projection_layers, projection_dims, dropout_rate)
-    #     return text_input, outputs
+    def create_text_encoder(self, num_projection_layers, projection_dims, dropout_rate):
+        text_input = keras.Input(shape=self.SENTENCE_EMBEDDING_SHAPE, name='text_embedding')
+        outputs = self.project_embeddings(text_input, num_projection_layers, projection_dims, dropout_rate)
+        return text_input, outputs
 
-    def create_classifier_model(bert_model_name):
-        # specify the BERT model to use from the available ones
-        tfhub_handle_encoder = map_name_to_handle[bert_model_name]
-        tfhub_handle_preprocess = map_model_to_preprocess[bert_model_name]
-
-        print("CREATING classifier model...")
-        text_input = tf.keras.layers.Input(shape=(), dtype=tf.string, name='text')
-        preprocessing_layer = hub.KerasLayer(tfhub_handle_preprocess, name='preprocessing')
-        encoder_inputs = preprocessing_layer(text_input)
-        encoder = hub.KerasLayer(tfhub_handle_encoder, trainable=True, name='BERT_encoder')
-        outputs = encoder(encoder_inputs)
-        net = outputs['pooled_output']
-        net = tf.keras.layers.Dropout(0.1)(net)
-        net = tf.keras.layers.Dense(1, activation=None, name='classifier')(net)
-        model = tf.keras.Model(inputs=text_input, outputs=net)
-        model.summary()
-        # starts from here
-        return model, text_input, outputs
-        
     # put together the feature representations above to create the image-text (multimodal) deep learning model
     def build_classifier_model(self):
         print(f'BUILDING model')
         img_input, vision_net = self.create_vision_encoder(num_projection_layers=1, projection_dims=128, dropout_rate=0.1)
-        text_input, text_net = self.create_classifier_model()
+        text_input, text_net = self.create_text_encoder(num_projection_layers=1, projection_dims=128, dropout_rate=0.1)
         net = tf.keras.layers.Concatenate(axis=1)([vision_net, text_net])
         net = tf.keras.layers.Dropout(0.1)(net)
         net = tf.keras.layers.Dense(self.num_classes, activation='softmax', name=self.classifier_model_name)(net)
