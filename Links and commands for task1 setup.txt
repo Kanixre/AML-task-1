@@ -1,0 +1,34 @@
+Links and commands for task1 setup
+
+-Download Anaconda Python
+
+-Add to path and install it...
+
+-create env named 'gpu' with Python 3.10.
+
+-Install tensor flow with these commands on 'gpu' terminal=
+conda install -c conda-forge cudatoolkit=11.2 cudnn=8.1.0 -y
+
+# Anything above 2.10 is not supported on the GPU on Windows Native
+python -m pip install "tensorflow<2.11"
+
+# Verify the installation:
+python -c "import tensorflow as tf; print(tf.config.list_physical_devices('GPU'))"
+
+-Launch vs code on 'gpu' from anaconda home page
+
+-open downloads folder from vs code
+
+-install dependencies for task 1
+
+pip install tf-models-official
+pip install tf-models-official==2.5.1
+pip install tensorflow-text
+pip install einops
+
+-Always put the folder in downloads
+- change image_path to match... 
+IMAGES_PATH = r"C:\Users\Computing\Downloads\flickr8k.dataset-cmp9137-item1\flickr8k-resised"
+
+-run task 1 code!
+   
