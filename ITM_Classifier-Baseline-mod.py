@@ -95,7 +95,8 @@ class ITM_DataLoader():
     IMAGE_SHAPE = (224, 224, 3)
     SENTENCE_EMBEDDING_SHAPE = (384)
     AUTOTUNE = tf.data.AUTOTUNE
-    IMAGES_PATH = "/mnt/c/Users/Computing/Downloads/flickr8k.dataset-cmp9137-item1/flickr8k-resised"
+    IMAGES_PATH = r"C:\Users\Computing\Downloads\flickr8k.dataset-cmp9137-item1\flickr8k-resised"
+
     train_data_file = IMAGES_PATH+"/../flickr8k.TrainImages.txt"
     dev_data_file = IMAGES_PATH+"/../flickr8k.DevImages.txt"
     test_data_file = IMAGES_PATH+"/../flickr8k.TestImages.txt"
@@ -234,6 +235,8 @@ class ITM_Classifier(ITM_DataLoader):
         cnn_layer = layers.MaxPooling2D()(cnn_layer)
         cnn_layer = layers.Conv2D(256, 3, padding='same', activation='relu')(cnn_layer)
         cnn_layer = layers.MaxPooling2D()(cnn_layer)
+        cnn_layer = layers.Conv2D(512, 3, padding='same', activation='relu')(cnn_layer)
+        cnn_layer = layers.MaxPooling2D()(cnn_layer)
         cnn_layer = layers.Dropout(dropout_rate)(cnn_layer)
         cnn_layer = layers.Flatten()(cnn_layer)
         outputs = self.project_embeddings(cnn_layer, num_projection_layers, projection_dims, dropout_rate)
@@ -259,10 +262,10 @@ class ITM_Classifier(ITM_DataLoader):
     # put together the feature representations above to create the image-text (multimodal) deep learning model
     def build_classifier_model(self):
         print(f'BUILDING model')
-        img_input, vision_net = self.create_vision_encoder(num_projection_layers=1, projection_dims=128, dropout_rate=0.1)
-        text_input, text_net = self.create_text_encoder(num_projection_layers=1, projection_dims=128, dropout_rate=0.1)
+        img_input, vision_net = self.create_vision_encoder(num_projection_layers=1, projection_dims=128, dropout_rate=0.2)
+        text_input, text_net = self.create_text_encoder(num_projection_layers=1, projection_dims=128, dropout_rate=0.2)
         net = tf.keras.layers.Concatenate(axis=1)([vision_net, text_net])
-        net = tf.keras.layers.Dropout(0.1)(net)
+        net = tf.keras.layers.Dropout(0.2)(net)
         net = tf.keras.layers.Dense(self.num_classes, activation='softmax', name=self.classifier_model_name)(net)
         self.classifier_model = tf.keras.Model(inputs=[img_input, text_input], outputs=net)
         self.classifier_model.summary()
@@ -322,8 +325,8 @@ class ITM_Classifier(ITM_DataLoader):
         print("TEST accuracy=%4f" % (accuracy))
 
         # reveal test performance using Tensorflow calculations
-        loss, accuracy = self.classifier_model.evaluate(self.test_ds)
-        print(f'Tensorflow test method: Loss: {loss}; ACCURACY: {accuracy}')
+        loss, tf_accuracy, tf_precision, tf_recall = self.classifier_model.evaluate(self.test_ds)
+        print(f'TensorFlow Evaluation - Loss: {loss}; Accuracy: {tf_accuracy}; Precision: {tf_precision}; Recall: {tf_recall}')
 
 
 # Let's create an instance of the main class

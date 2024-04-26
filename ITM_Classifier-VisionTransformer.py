@@ -96,7 +96,8 @@ class ITM_DataLoader():
     IMAGE_SHAPE = (224, 224, 3)
     SENTENCE_EMBEDDING_SHAPE = (384)
     AUTOTUNE = tf.data.AUTOTUNE
-    IMAGES_PATH = "/mnt/c/Users/Computing/Downloads/flickr8k.dataset-cmp9137-item1/flickr8k-resised"
+
+    IMAGES_PATH = r"C:\Users\Computing\Downloads\flickr8k.dataset-cmp9137-item1\flickr8k-resised"
     train_data_file = IMAGES_PATH+"/../flickr8k.TrainImages.txt"
     dev_data_file = IMAGES_PATH+"/../flickr8k.DevImages.txt"
     test_data_file = IMAGES_PATH+"/../flickr8k.TestImages.txt"
@@ -236,18 +237,17 @@ class ITM_Classifier(ITM_DataLoader):
     #     outputs = self.project_embeddings(cnn_layer, num_projection_layers, projection_dims, dropout_rate)
     #     return img_input, outputs
     
-    # pre-trained vision transformer (ViT) from Keras.
+    # pre-trained vision transformer (BiT) from Keras.
     def create_vision_encoder(self, projection_dims, dropout_rate):
         img_input = layers.Input(shape=self.IMAGE_SHAPE, name="image_input")
         
         # Load a pre-trained Vision Transformer model from TensorFlow Hub
-        # BiT Model not Vit
-        vit_model_url = "https://tfhub.dev/google/bit/m-r50x1/1"
-        vit_layer = hub.KerasLayer(vit_model_url, trainable=True)(img_input)
+        bit_model_url = "https://www.kaggle.com/models/google/bit/TensorFlow2/m-r50x1/1"
+        bit_layer = hub.KerasLayer(bit_model_url, trainable=True)(img_input)
         
         # Use dropout for regularization and a Dense layer to project the embeddings
-        vit_output = layers.Dropout(dropout_rate)(vit_layer)
-        outputs = layers.Dense(projection_dims, activation='relu')(vit_output)
+        bit_output = layers.Dropout(dropout_rate)(bit_layer)
+        outputs = layers.Dense(projection_dims, activation='relu')(bit_output)
         
         return img_input, outputs
 
@@ -334,8 +334,8 @@ class ITM_Classifier(ITM_DataLoader):
         print("TEST accuracy=%4f" % (accuracy))
 
         # reveal test performance using Tensorflow calculations
-        loss, accuracy = self.classifier_model.evaluate(self.test_ds)
-        print(f'Tensorflow test method: Loss: {loss}; ACCURACY: {accuracy}')
+        loss, tf_accuracy, tf_precision, tf_recall = self.classifier_model.evaluate(self.test_ds)
+        print(f'TensorFlow Evaluation - Loss: {loss}; Accuracy: {tf_accuracy}; Precision: {tf_precision}; Recall: {tf_recall}')
 
 
 # Let's create an instance of the main class
